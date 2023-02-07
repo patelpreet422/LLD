@@ -1,0 +1,3 @@
+[submodule "Splitwise"]
+	path = Splitwise
+	url = ./Splitwise
