@@ -1,3 +1,4 @@
 [submodule "Splitwise"]
 	path = Splitwise
+	branch = main
 	url = https://github.com/patelpreet422/Splitwise
