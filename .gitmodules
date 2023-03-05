@@ -2,3 +2,6 @@
 	path = Splitwise
 	branch = main
 	url = https://github.com/patelpreet422/Splitwise
+[submodule "ReaderWriterLock"]
+	path = ReaderWriterLock
+	url = https://github.com/patelpreet422/ReaderWriterLock
