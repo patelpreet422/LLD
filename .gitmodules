@@ -4,4 +4,9 @@
 	url = https://github.com/patelpreet422/Splitwise
 [submodule "ReaderWriterLock"]
 	path = ReaderWriterLock
+	branch = main
 	url = https://github.com/patelpreet422/ReaderWriterLock
+[submodule "Leaderboard"]
+	path = Leaderboard
+	branch = main
+	url = https://github.com/patelpreet422/Leaderboard
