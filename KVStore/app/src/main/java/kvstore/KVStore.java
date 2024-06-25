@@ -7,9 +7,13 @@ import kvstore.strategy.HashStrategy;
 import kvstore.util.Err;
 import kvstore.util.Ok;
 import kvstore.util.Result;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+@Data
+@Slf4j
 public class KVStore {
 
     private final HashStrategy hashStrategy;
@@ -23,7 +27,7 @@ public class KVStore {
         Result<Long> hash = hashStrategy.hash(key);
 
         switch (hash) {
-            case Err<Long> err -> err.error().printStackTrace();
+            case Err<Long> err -> log.error("Error while hashing key", err.error());
             case Ok<Long> ok -> store.put(key, value);
         }
 

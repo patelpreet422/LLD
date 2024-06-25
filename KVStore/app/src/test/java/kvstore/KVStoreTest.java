@@ -3,12 +3,80 @@
  */
 package kvstore;
 
+import kvstore.strategy.HashStrategy;
+import kvstore.util.Result;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.ConcurrentHashMap;
+
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class KVStoreTest {
+
+    private KVStore kvStore;
+    private HashStrategy hashStrategy;
+
+    @BeforeEach
+    void setUp() {
+        hashStrategy = mock(HashStrategy.class);
+        kvStore = new KVStore(hashStrategy);
+        kvStore.setStore(new ConcurrentHashMap<>());
+    }
+
     @Test
-    void appHasAGreeting() {
+    void testAddKeyWithOkResult() {
+        String key = "testKey";
+        String value = "testValue";
+        Result<Long> okResult = Result.ok(123L);
+
+        when(hashStrategy.hash(key)).thenReturn(okResult);
+
+        kvStore.addKey(key, value);
+
+        assertEquals(value, kvStore.getStore().get(key));
+    }
+
+    @Test
+    void testAddKeyWithErrResult() {
+        String key = "testKey";
+        String value = "testValue";
+        Throwable throwable = new Exception("Hashing failed");
+        Result<Long> errResult = Result.err(throwable);
+
+        when(hashStrategy.hash(key)).thenReturn(errResult);
+
+        kvStore.addKey(key, value);
+
+        assertNull(kvStore.getStore().get(key));
+
+    }
+
+    @Test
+    void testGetValue() throws Throwable {
+        String key = "testKey";
+        String value = "testValue";
+        kvStore.getStore().put(key, value);
+        Result<Long> okResult = Result.ok(123L);
+
+        when(hashStrategy.hash(key)).thenReturn(okResult);
+
+        assertEquals(value, kvStore.getValue(key));
+    }
+
+    @Test
+    void testGetValueWithHashingFailure() {
+        String key = "testKey";
+        Result<Long> errResult = Result.err(new Exception("Hashing failed"));
+
+        when(hashStrategy.hash(key)).thenReturn(errResult);
+
+        assertThrows(Exception.class, () -> {
+            kvStore.getValue(key);
+        });
 
     }
 }
+
