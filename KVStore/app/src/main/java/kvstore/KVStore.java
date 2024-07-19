@@ -10,6 +10,7 @@ import kvstore.util.Result;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Data
@@ -17,13 +18,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class KVStore {
 
     private final HashStrategy hashStrategy;
-    private ConcurrentHashMap<String, String> store;
+
+    private Stack<ConcurrentHashMap<String, String>> tranxStack = new Stack<>();
 
     public KVStore(HashStrategy hashStrategy) {
         this.hashStrategy = hashStrategy;
     }
 
-    public void addKey(String key, String value) {
+    private void addKey(ConcurrentHashMap<String, String> store, String key, String value) {
         Result<Long> hash = hashStrategy.hash(key);
 
         switch (hash) {
@@ -33,14 +35,42 @@ public class KVStore {
 
     }
 
-    public String getValue(String key) throws Throwable {
+    public void addKey(String key, String value) {
+        if(tranxStack.empty()) {
+            throw new IllegalStateException("No on going transaction, call store.begin() to start the transaction");
+        }
+
+        addKey(tranxStack.peek(), key, value);
+    }
+
+    private String getValue(ConcurrentHashMap<String, String> store, String key) throws Throwable {
         long hash = hashStrategy.hash(key).get();
         return store.get(key);
     }
 
-    public void removeKey(String key) throws Throwable {
+    public String getValue(String key) throws Throwable {
+        if(tranxStack.empty()) {
+            throw new IllegalStateException("No on going transaction, call store.begin() to start the transaction");
+        }
+
+       return getValue(tranxStack.peek(), key);
+    }
+
+    private void removeKey(ConcurrentHashMap<String, String> store, String key) throws Throwable {
         long hash = hashStrategy.hash(key).get();
         store.remove(key);
+    }
+
+    public void removeKey(String key) throws Throwable {
+        if(tranxStack.empty()) {
+            throw new IllegalStateException("No on going transaction, call store.begin() to start the transaction");
+        }
+
+        removeKey(tranxStack.peek(), key);
+    }
+
+    public void begin() {
+        tranxStack.push(new ConcurrentHashMap<>());
     }
 }
 

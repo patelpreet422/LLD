@@ -8,8 +8,6 @@ import kvstore.util.Result;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.ConcurrentHashMap;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -23,34 +21,36 @@ class KVStoreTest {
     void setUp() {
         hashStrategy = mock(HashStrategy.class);
         kvStore = new KVStore(hashStrategy);
-        kvStore.setStore(new ConcurrentHashMap<>());
     }
 
     @Test
-    void testAddKeyWithOkResult() {
+    void testAddKeyWithOkResult() throws Throwable {
         String key = "testKey";
         String value = "testValue";
         Result<Long> okResult = Result.ok(123L);
 
         when(hashStrategy.hash(key)).thenReturn(okResult);
 
+        kvStore.begin();
         kvStore.addKey(key, value);
 
-        assertEquals(value, kvStore.getStore().get(key));
+        assertEquals(value, kvStore.getValue(key));
     }
 
     @Test
-    void testAddKeyWithErrResult() {
+    void testAddKeyWithErrResult() throws Throwable {
         String key = "testKey";
         String value = "testValue";
+
         Throwable throwable = new Exception("Hashing failed");
         Result<Long> errResult = Result.err(throwable);
-
         when(hashStrategy.hash(key)).thenReturn(errResult);
 
+        kvStore.begin();
         kvStore.addKey(key, value);
 
-        assertNull(kvStore.getStore().get(key));
+        when(hashStrategy.hash(key)).thenReturn(Result.ok(1L));
+        assertNull(kvStore.getValue(key));
 
     }
 
@@ -58,10 +58,12 @@ class KVStoreTest {
     void testGetValue() throws Throwable {
         String key = "testKey";
         String value = "testValue";
-        kvStore.getStore().put(key, value);
-        Result<Long> okResult = Result.ok(123L);
 
+        Result<Long> okResult = Result.ok(123L);
         when(hashStrategy.hash(key)).thenReturn(okResult);
+
+        kvStore.begin();
+        kvStore.addKey(key, value);
 
         assertEquals(value, kvStore.getValue(key));
     }
@@ -73,6 +75,7 @@ class KVStoreTest {
 
         when(hashStrategy.hash(key)).thenReturn(errResult);
 
+        kvStore.begin();
         assertThrows(Exception.class, () -> {
             kvStore.getValue(key);
         });
@@ -85,7 +88,7 @@ class KVStoreTest {
         String value = "testValue";
 
         when(hashStrategy.hash(key)).thenReturn(Result.ok(1L));
-
+        kvStore.begin();
         kvStore.addKey(key, value);
 
         assertEquals(value, kvStore.getValue(key));
@@ -94,5 +97,6 @@ class KVStoreTest {
 
         assertNull(kvStore.getValue(key));
     }
+
 }
 
