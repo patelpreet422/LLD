@@ -88,9 +88,9 @@ class KVStoreTest {
 
         kvStore.addKey(key, value);
 
-        assertEquals(value, kvStore.getStore().get(key));
+        assertEquals(value, kvStore.getValue(key));
 
-        kvStore.deleteKey(key);
+        kvStore.removeKey(key);
 
         assertNull(kvStore.getValue(key));
     }

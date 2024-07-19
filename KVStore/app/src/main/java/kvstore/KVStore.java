@@ -38,7 +38,7 @@ public class KVStore {
         return store.get(key);
     }
 
-    public void deleteKey(String key) throws Throwable {
+    public void removeKey(String key) throws Throwable {
         long hash = hashStrategy.hash(key).get();
         store.remove(key);
     }
