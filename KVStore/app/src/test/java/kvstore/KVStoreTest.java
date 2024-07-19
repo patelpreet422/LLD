@@ -78,5 +78,21 @@ class KVStoreTest {
         });
 
     }
+
+    @Test
+    void testRemoveKeyWithOkResult() throws Throwable {
+        String key = "testKey";
+        String value = "testValue";
+
+        when(hashStrategy.hash(key)).thenReturn(Result.ok(1L));
+
+        kvStore.addKey(key, value);
+
+        assertEquals(value, kvStore.getStore().get(key));
+
+        kvStore.deleteKey(key);
+
+        assertNull(kvStore.getValue(key));
+    }
 }
 
